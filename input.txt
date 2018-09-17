@@ -1,0 +1,7 @@
+i1 i2 i3 i4
+i1 i2 i3 i4
+i1 i2 i4
+i2 i3 i4
+i3 i4
+i1 i4
+i2 i3 i4
