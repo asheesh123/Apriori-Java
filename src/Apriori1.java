@@ -1,9 +1,11 @@
-import java.util.*;
-import java.io.*;
-
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Scanner;
 public class Apriori1 {
-	
-	static boolean isSubList(List l1,List l2) {
+	static boolean isSubList(List<String> l1,List<String> l2) {
 		boolean flag=true;
 		for(int i=0;i<l2.size();i++) {
 			if(!l1.contains(l2.get(i))) {
@@ -12,6 +14,7 @@ public class Apriori1 {
 		}
 		return flag;
 	}
+	
 	static List<String> returnList(List<String> l1,List<String> l2) {
 		List<String> jl=new ArrayList<String>();
 		if(l1.size()==1) {
@@ -33,45 +36,7 @@ public class Apriori1 {
 		}
 		return null;
 	}
-	public static void main(String[] args) throws Exception {
-		
-		int min_sup=2;
-		System.out.print("enter number of transactions:");
-		Scanner sc=new Scanner(System.in);
-		int n=sc.nextInt();
-		sc.nextLine();
-		
-		List<List<String>> trans=new ArrayList<>();
-		LinkedHashMap< List<String>,Integer> C1=new LinkedHashMap<>();
-		List<List<String>> L1=new ArrayList<>();
-		for(int i=0;i<n;i++) {
-			System.out.print("Enter items in first transaction(eg. I1 I2 ):");
-			String s=sc.nextLine();
-			StringTokenizer st=new StringTokenizer(s," ");
-			List<String> li=new ArrayList<>();
-			while(st.hasMoreTokens()) {
-				li.add(st.nextToken());
-			}
-			trans.add(li);
-		}
-		for(int i=0;i<trans.size();i++) {
-			int j=i+1;
-			System.out.println("T"+j+":"+trans.get(i));
-		}
-		System.out.print("Enter distinct items(eg. I1 I2 I3):");
-		String it=sc.nextLine();
-		StringTokenizer st=new StringTokenizer(it," ");
-		while(st.hasMoreTokens()) {
-			List<String> items=new ArrayList<>();
-			items.add(st.nextToken());
-			C1.put(items, 0);
-			
-		}
-		
-		
-		System.out.print("Enter minimum support count:");
-		min_sup=sc.nextInt();
-		int h=1;
+	static LinkedHashMap<List<String>, Integer> getCandiCount(List<List<String>> trans,LinkedHashMap<List<String>,Integer> C1) {
 		for(List<String>  ll: C1.keySet()) {
 			int count=0;
 			for(int t=0;t<trans.size();t++) {
@@ -81,22 +46,74 @@ public class Apriori1 {
 			}
 			C1.put(ll,count);
 		}
-		System.out.println("Condidate ites C"+h);
+		return C1;
+	}
+	static void displayC_Form_L(LinkedHashMap<List<String>, Integer> C1, List<List<String>> L1, int h,int min_sup,LinkedHashMap<List<String>, Integer> freqitems) {
+		if(!C1.isEmpty())
+			//System.out.println("Condidate items C"+h);
 		for(List<String>  ll: C1.keySet()) {
-			System.out.println(ll+" : "+C1.get(ll).intValue());
+			//System.out.println(ll+" : "+C1.get(ll).intValue());
 			if(C1.get(ll).intValue()>=min_sup) {
 				L1.add(ll);
+				freqitems.put(ll, C1.get(ll));
 			}
 		}
-		System.out.println("List of frequent  itemset L"+(h++));
-		for(int i=0;i<L1.size();i++) {
-			System.out.println(">"+L1.get(i));
+	}
+	static int dispayL(List<List<String>> L1,int h) {
+		if(!L1.isEmpty())
+			//System.out.println("List of frequent  itemset L"+(h++));
+			for(int i=0;i<L1.size();i++) {
+			//	System.out.println(">"+L1.get(i));
 		}
+		return h;
+	}
+	public static void main(String[] args) throws Exception {
 		
-		///////////////////////////////////////////
+		int min_sup=2;
+		Apriori1 ap=new Apriori1();
+		LinkedHashMap<List<String>, Integer> freqitems=new LinkedHashMap<>();
+		List<List<String>> trans=new ArrayList<>();
+		LinkedHashMap< List<String>,Integer> C1=new LinkedHashMap<>();
+		List<List<String>> L1=new ArrayList<>();
+		Scanner sc=new Scanner(System.in);		
+		System.out.print("Enter file name(csv file):");
+		String fname=sc.nextLine();
+		FileReader fr=new FileReader(fname);
+		BufferedReader br=new BufferedReader(fr);
+		String str="";
+		String ite[]=br.readLine().split(",");
+		for(String s:ite) {
+			List<String> l=new ArrayList<>();
+			l.add(s);
+			C1.put(l, 0);
+		}
+		while((str=br.readLine())!=null) {
+			String tr[]=str.split(",");
+			int p=0;
+			List<String> li=new ArrayList<>();
+			for(String s:tr) {
+				if(s.equals("")) {
+					p++;
+				}
+				else {
+					li.add(ite[p++]);
+				}
+			}
+			trans.add(li);
+		}
+		br.close();
+		for(int i=0;i<trans.size();i++) {
+			int j=i+1;
+			System.out.println("T"+j+":"+trans.get(i));
+		}		
+		System.out.print("Enter minimum support count:");
+		min_sup=sc.nextInt();
+		int h=1;
+		C1=getCandiCount(trans, C1);
+		displayC_Form_L(C1,L1,h,min_sup,freqitems);
+		h=dispayL(L1, h);
 		while(!C1.isEmpty()||!L1.isEmpty()) {
 			C1.clear();
-			
 			for(int i=0;i<L1.size();i++) {
 				for(int j=i+1;j<L1.size();j++) {
 					List<String> l=returnList(L1.get(i), L1.get(j));
@@ -105,28 +122,13 @@ public class Apriori1 {
 				}
 			}
 			L1.clear();
-			for(List<String> ls:C1.keySet()) {
-				int count=0;
-				for(int y=0;y<trans.size();y++) {
-					if(isSubList(trans.get(y),ls)) {
-						count++;
-					}
-				}
-				C1.put(ls,count);
-			}
-			if(!C1.isEmpty())
-			System.out.println("Condidate items C"+h);
-			for(List<String>  ll: C1.keySet()) {
-				System.out.println(ll+" : "+C1.get(ll).intValue());
-				if(C1.get(ll).intValue()>=min_sup) {
-					L1.add(ll);
-				}
-			}
-			if(!L1.isEmpty())
-			System.out.println("List of frequent  itemset L"+(h++));
-			for(int i=0;i<L1.size();i++) {
-				System.out.println(">"+L1.get(i));
-			}
+			C1=getCandiCount(trans, C1);
+			displayC_Form_L(C1,L1,h,min_sup,freqitems);
+			h=dispayL(L1, h);
+		}
+		System.out.println("*************list of frequent item set********");
+		for(List<String> l:freqitems.keySet()) {
+			System.out.println(l+ " "+freqitems.get(l));
 		}
 	}
 }

@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 public class Apriori {
-	static boolean isSubList(List l1,List l2) {
+	static boolean isSubList(List<String> l1,List<String> l2) {
 		boolean flag=true;
 		for(int i=0;i<l2.size();i++) {
 			if(!l1.contains(l2.get(i))) {
@@ -50,6 +50,7 @@ public class Apriori {
 			System.out.println(ll+" : "+C1.get(ll).intValue());
 			if(C1.get(ll).intValue()>=min_sup) {
 				L1.add(ll);
+				
 			}
 		}
 	}
